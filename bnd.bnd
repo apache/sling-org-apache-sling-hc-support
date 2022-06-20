@@ -1,7 +1,0 @@
-Conditional-Package: \
-    org.apache.felix.hc.generalchecks.util,\
-    org.apache.felix.hc.core.impl.util.lang
-Import-Package: \
-    !org.apache.felix.hc.generalchecks.util,\
-    !org.apache.felix.hc.core.impl.util.lang,\
-    *
