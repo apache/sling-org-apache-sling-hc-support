@@ -18,6 +18,8 @@
  */
 package org.apache.sling.hc.support.impl.it;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
@@ -26,6 +28,7 @@ import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfigurati
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.List;
 
 import javax.inject.Inject;
 import javax.jcr.Binary;
@@ -33,6 +36,7 @@ import javax.jcr.Node;
 import javax.jcr.Session;
 import javax.jcr.SimpleCredentials;
 
+import org.apache.felix.hc.api.Result;
 import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,22 +66,28 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
             factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
                 .put("hc.name", "Scripted Heath Check Test")
                 .put("hc.tags", new String[] {"scriptedtest"})
-                .put("language", "groovy") //"gsp"
+                .put("language", "groovy")
                 .put("script", "log.info('ok')")
                 .asOption(),
             factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
                 .put("hc.name", "Scripted Heath Check Test2")
                 .put("hc.tags", new String[] {"scriptedurltest"})
-                .put("language", "groovy") //"gsp"
+                .put("language", "groovy")
                 .put("script", "")
                 .put("scriptUrl", Paths.get(String.format("%s/target/test-classes/test-content/test2.groovy", PathUtils.getBaseDir())).toUri().toString())
                 .asOption(),
             factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
                 .put("hc.name", "Scripted Heath Check Test3")
                 .put("hc.tags", new String[] {"scriptedjcrurltest"})
-                .put("language", "groovy") //"gsp"
+                .put("language", "groovy")
                 .put("script", "")
                 .put("scriptUrl", "jcr:/content/test2.groovy")
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test (invalid language)")
+                .put("hc.tags", new String[] {"not_valid"})
+                .put("language", "not_valid")
+                .put("script", "log.info('ok')")
                 .asOption()
         );
     }
@@ -104,6 +114,16 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
         jcrSession.save();
 
         assertTrue(waitForHealthCheck("scriptedjcrurltest", Duration.ofSeconds(30), Duration.ofMillis(100)));
+    }
+
+    @Test
+    public void testScriptedHealthCheckForNotValidLanguage() throws Exception {
+        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid", Duration.ofSeconds(30), Duration.ofMillis(100));
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        Result r = results.get(0);
+        assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        assertTrue("Expected IllegalStateException for invalid language", r.toString().contains("java.lang.IllegalStateException: Could not get script engine for not_valid from available factories"));
     }
 
 }

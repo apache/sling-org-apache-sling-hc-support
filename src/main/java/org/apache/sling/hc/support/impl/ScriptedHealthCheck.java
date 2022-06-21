@@ -241,7 +241,7 @@ public class ScriptedHealthCheck implements HealthCheck {
         public ScriptEngine getScriptEngine(ScriptEngineManager scriptEngineManager, String language) {
             List<ScriptEngineFactory> engineFactories = scriptEngineManager.getEngineFactories();
             ScriptEngine scriptEngine = engineFactories.stream()
-                .filter(s -> language.equals(s.getLanguageName()))
+                .filter(s -> language.equalsIgnoreCase(s.getLanguageName()))
                 .findFirst()
                 .map(ScriptEngineFactory::getScriptEngine)
                 .orElse(null);
