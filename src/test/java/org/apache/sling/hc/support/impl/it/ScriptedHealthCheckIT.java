@@ -23,8 +23,17 @@ import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 
+import java.io.IOException;
+import java.nio.file.Paths;
 import java.time.Duration;
 
+import javax.inject.Inject;
+import javax.jcr.Binary;
+import javax.jcr.Node;
+import javax.jcr.Session;
+import javax.jcr.SimpleCredentials;
+
+import org.apache.sling.jcr.api.SlingRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ops4j.pax.exam.Configuration;
@@ -32,6 +41,7 @@ import org.ops4j.pax.exam.Option;
 import org.ops4j.pax.exam.junit.PaxExam;
 import org.ops4j.pax.exam.spi.reactors.ExamReactorStrategy;
 import org.ops4j.pax.exam.spi.reactors.PerClass;
+import org.ops4j.pax.exam.util.PathUtils;
 
 /**
  * Tests for SLING-11141
@@ -40,8 +50,11 @@ import org.ops4j.pax.exam.spi.reactors.PerClass;
 @ExamReactorStrategy(PerClass.class)
 public class ScriptedHealthCheckIT extends HCSupportTestSupport {
 
+    @Inject
+    protected SlingRepository repository;
+
     @Configuration
-    public Option[] configuration() {
+    public Option[] configuration() throws IOException {
         return options(
             baseConfiguration(),
             mavenBundle().groupId("org.apache.groovy").artifactId("groovy").version("4.0.3"),
@@ -51,6 +64,20 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
                 .put("hc.tags", new String[] {"scriptedtest"})
                 .put("language", "groovy") //"gsp"
                 .put("script", "log.info('ok')")
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test2")
+                .put("hc.tags", new String[] {"scriptedurltest"})
+                .put("language", "groovy") //"gsp"
+                .put("script", "")
+                .put("scriptUrl", Paths.get(String.format("%s/target/test-classes/test-content/test2.groovy", PathUtils.getBaseDir())).toUri().toString())
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test3")
+                .put("hc.tags", new String[] {"scriptedjcrurltest"})
+                .put("language", "groovy") //"gsp"
+                .put("script", "")
+                .put("scriptUrl", "jcr:/content/test2.groovy")
                 .asOption()
         );
     }
@@ -58,6 +85,25 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
     @Test
     public void testScriptedHealthCheck() throws Exception {
         assertTrue(waitForHealthCheck("scriptedtest", Duration.ofSeconds(30), Duration.ofMillis(100)));
+    }
+
+    @Test
+    public void testFileScriptedUrlHealthCheck() throws Exception {
+        assertTrue(waitForHealthCheck("scriptedurltest", Duration.ofSeconds(30), Duration.ofMillis(100)));
+    }
+
+    @Test
+    public void testJcrScriptedUrlHealthCheck() throws Exception {
+        //publish the groovy script as a JCR file node
+        Session jcrSession = repository.login(new SimpleCredentials("admin", "admin".toCharArray()));
+        Node fileNode = jcrSession.getNode("/content").addNode("test2.groovy", "nt:file");
+        Node contentNode = fileNode.addNode("jcr:content", "nt:resource");
+        Binary dataBinary = jcrSession.getValueFactory().createBinary(getClass().getResourceAsStream("/test-content/test2.groovy"));
+        contentNode.setProperty("jcr:data", dataBinary);
+        contentNode.setProperty("jcr:mimeType", "application/x-groovy");
+        jcrSession.save();
+
+        assertTrue(waitForHealthCheck("scriptedjcrurltest", Duration.ofSeconds(30), Duration.ofMillis(100)));
     }
 
 }
