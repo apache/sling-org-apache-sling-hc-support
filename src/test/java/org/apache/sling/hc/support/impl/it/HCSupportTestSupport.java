@@ -29,6 +29,7 @@ import static org.ops4j.pax.exam.CoreOptions.when;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,7 +49,7 @@ import org.ops4j.pax.exam.options.extra.VMOption;
 public class HCSupportTestSupport extends TestSupport {
 
     @Inject
-    private HealthCheckExecutor hcExecutor;
+    protected HealthCheckExecutor hcExecutor;
 
 
     final Option hcSupport = mavenBundle().groupId("org.apache.sling").artifactId("org.apache.sling.hc.support").version(versionResolver);
@@ -101,22 +102,28 @@ public class HCSupportTestSupport extends TestSupport {
      * @param nextIterationDelay the sleep time between the check attempts
      */
     protected boolean waitForHealthCheck(String tags, Duration atMost, Duration pollInterval) throws Exception {
+        return !waitForHealthCheck(Result.Status.OK, tags, atMost, pollInterval).isEmpty();
+    }
+    protected List<Result> waitForHealthCheck(Result.Status expectedStatus, String tags, Duration atMost, Duration pollInterval) throws Exception {
+        List<Result> hcResults = new ArrayList<>();
         Awaitility.await("healthCheck: " + tags)
             .atMost(atMost)
             .pollInterval(pollInterval)
             .until(() -> {
+                hcResults.clear();
                 boolean result = false;
                 HealthCheckSelector hcs = HealthCheckSelector.tags(tags);
                 List<HealthCheckExecutionResult> results = hcExecutor.execute(hcs);
                 if (!results.isEmpty()) {
                     for (final HealthCheckExecutionResult exR : results) {
                         final Result r = exR.getHealthCheckResult();
-                        result = r.isOk();
+                        hcResults.add(r);
+                        result = expectedStatus.equals(r.getStatus());
                     }
                 }
                 return result;
             });
-        return true;
+        return hcResults;
     }
 
 }
