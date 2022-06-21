@@ -16,4 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+scriptHelper.getService(org.apache.felix.hc.api.execution.HealthCheckExecutor.class)
+scriptHelper.getServices(org.apache.felix.hc.api.execution.HealthCheckExecutor.class, null)
 log.info('ok')
