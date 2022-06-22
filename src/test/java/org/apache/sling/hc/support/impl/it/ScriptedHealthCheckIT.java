@@ -144,33 +144,31 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
         assertTrue(waitForHealthCheck("scriptedjcrurltest", Duration.ofSeconds(30), Duration.ofMillis(100)));
     }
 
-    @Test
-    public void testScriptedHealthCheckForNotValidLanguage() throws Exception {
-        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid", Duration.ofSeconds(30), Duration.ofMillis(100));
+    private Result healthCheckError(String tags) throws Exception {
+        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, tags, Duration.ofSeconds(30), Duration.ofMillis(100));
         assertNotNull(results);
         assertEquals(1, results.size());
         Result r = results.get(0);
         assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        return r;
+    }
+
+    @Test
+    public void testScriptedHealthCheckForNotValidLanguage() throws Exception {
+        Result r = healthCheckError("not_valid");
         assertTrue("Expected IllegalStateException for invalid language", r.toString().contains("java.lang.IllegalStateException: Could not get script engine for not_valid from available factories"));
     }
 
     @Test
     public void testNotValidJcrScriptedUrlHealthCheck() throws Exception {
-        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid_scriptedjcrurltest", Duration.ofSeconds(30), Duration.ofMillis(100));
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        Result r = results.get(0);
-        assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        Result r = healthCheckError("not_valid_scriptedjcrurltest");
         assertTrue("Expected IllegalStateException for invalid jcr path", r.toString().contains("Exception: Could not load script from path"));
     }
 
     @Test
     public void testNotValidFileScriptedUrlHealthCheck() throws Exception {
-        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid_scriptedurltest", Duration.ofSeconds(30), Duration.ofMillis(100));
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        Result r = results.get(0);
-        assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        Result r = healthCheckError("not_valid_scriptedurltest");
         assertTrue("Expected IllegalStateException for invalid file URL", r.toString().contains("Exception: Could not read file URL"));
     }
+
 }
