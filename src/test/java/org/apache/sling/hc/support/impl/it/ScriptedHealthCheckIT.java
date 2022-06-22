@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.ops4j.pax.exam.CoreOptions.mavenBundle;
 import static org.ops4j.pax.exam.CoreOptions.options;
 import static org.ops4j.pax.exam.cm.ConfigurationAdminOptions.factoryConfiguration;
+import static org.apache.sling.testing.paxexam.SlingOptions.slingScriptingJavascript;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -63,11 +64,13 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
             baseConfiguration(),
             mavenBundle().groupId("org.apache.groovy").artifactId("groovy").version("4.0.3"),
             mavenBundle().groupId("org.apache.groovy").artifactId("groovy-jsr223").version("4.0.3"),
+            slingScriptingJavascript(),
             factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
                 .put("hc.name", "Scripted Heath Check Test")
                 .put("hc.tags", new String[] {"scriptedtest"})
                 .put("language", "groovy")
                 .put("script", "log.info('ok')")
+                .put("scriptUrl", "not_valid_ignored")
                 .asOption(),
             factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
                 .put("hc.name", "Scripted Heath Check Test2")
@@ -88,6 +91,26 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
                 .put("hc.tags", new String[] {"not_valid"})
                 .put("language", "not_valid")
                 .put("script", "log.info('ok')")
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test2 (invalid path)")
+                .put("hc.tags", new String[] {"not_valid_scriptedurltest"})
+                .put("language", "groovy")
+                .put("script", "")
+                .put("scriptUrl", Paths.get(String.format("%s/target/test-classes/test-content/not_valid.groovy", PathUtils.getBaseDir())).toUri().toString())
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test3 (invalid path)")
+                .put("hc.tags", new String[] {"not_valid_scriptedjcrurltest"})
+                .put("language", "groovy")
+                .put("script", "")
+                .put("scriptUrl", "jcr:/content/not_valid.groovy")
+                .asOption(),
+            factoryConfiguration("org.apache.sling.hc.support.ScriptedHealthCheck")
+                .put("hc.name", "Scripted Heath Check Test4")
+                .put("hc.tags", new String[] {"ecmascript_scriptedtest"})
+                .put("language", "ECMAScriPt")
+                .put("script", "log.info('ok')")
                 .asOption()
         );
     }
@@ -95,6 +118,11 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
     @Test
     public void testScriptedHealthCheck() throws Exception {
         assertTrue(waitForHealthCheck("scriptedtest", Duration.ofSeconds(30), Duration.ofMillis(100)));
+    }
+
+    @Test
+    public void testECMAScriptScriptedHealthCheck() throws Exception {
+        assertTrue(waitForHealthCheck("ecmascript_scriptedtest", Duration.ofSeconds(30), Duration.ofMillis(100)));
     }
 
     @Test
@@ -126,4 +154,23 @@ public class ScriptedHealthCheckIT extends HCSupportTestSupport {
         assertTrue("Expected IllegalStateException for invalid language", r.toString().contains("java.lang.IllegalStateException: Could not get script engine for not_valid from available factories"));
     }
 
+    @Test
+    public void testNotValidJcrScriptedUrlHealthCheck() throws Exception {
+        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid_scriptedjcrurltest", Duration.ofSeconds(30), Duration.ofMillis(100));
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        Result r = results.get(0);
+        assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        assertTrue("Expected IllegalStateException for invalid jcr path", r.toString().contains("Exception: Could not load script from path"));
+    }
+
+    @Test
+    public void testNotValidFileScriptedUrlHealthCheck() throws Exception {
+        List<Result> results = waitForHealthCheck(Result.Status.HEALTH_CHECK_ERROR, "not_valid_scriptedurltest", Duration.ofSeconds(30), Duration.ofMillis(100));
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        Result r = results.get(0);
+        assertEquals(Result.Status.HEALTH_CHECK_ERROR, r.getStatus());
+        assertTrue("Expected IllegalStateException for invalid file URL", r.toString().contains("Exception: Could not read file URL"));
+    }
 }

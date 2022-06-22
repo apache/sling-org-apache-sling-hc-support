@@ -209,14 +209,19 @@ public class ScriptedHealthCheck implements HealthCheck {
         String fileContent;
         try {
             Resource dataResource = resourceResolver.getResource(jcrPath + JCR_CONTENT);
-            InputStream is = dataResource.adaptTo(InputStream.class);
-            ByteArrayOutputStream result = new ByteArrayOutputStream();
-            byte[] buffer = new byte[1024];
-            int length;
-            while ((length = is.read(buffer)) != -1) {
-                result.write(buffer, 0, length);
+            if (dataResource == null) {
+                throw new IllegalArgumentException("Could not load script from path " + jcrPath);
+            } else {
+                try (InputStream is = dataResource.adaptTo(InputStream.class);
+                        ByteArrayOutputStream result = new ByteArrayOutputStream();) {
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = is.read(buffer)) != -1) {
+                        result.write(buffer, 0, length);
+                    }
+                    fileContent = result.toString(StandardCharsets.UTF_8.name());
+                }
             }
-            fileContent = result.toString(StandardCharsets.UTF_8.name());
         } catch (IOException e) {
             throw new IllegalStateException("Could not load script from path " + jcrPath + ": " + e, e);
         }

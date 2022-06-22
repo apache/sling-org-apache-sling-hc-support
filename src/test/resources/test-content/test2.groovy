@@ -16,6 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+// try lookup service
 scriptHelper.getService(org.apache.felix.hc.api.execution.HealthCheckExecutor.class)
+// same again
+scriptHelper.getService(org.apache.felix.hc.api.execution.HealthCheckExecutor.class)
+// try lookup services
 scriptHelper.getServices(org.apache.felix.hc.api.execution.HealthCheckExecutor.class, null)
+// try non-existing service
+scriptHelper.getService(org.apache.felix.hc.api.Result.class)
+// try non-existing services
+scriptHelper.getServices(org.apache.felix.hc.api.Result.class, null)
+
 log.info('ok')
