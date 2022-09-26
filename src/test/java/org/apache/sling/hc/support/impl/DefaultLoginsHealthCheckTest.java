@@ -34,6 +34,10 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+/**
+ * @deprecated for SLING-11446 - Moved this to the org.apache.sling.auth.core bundle
+ */
+@Deprecated
 public class DefaultLoginsHealthCheckTest {
     
     private Result getTestResult(String login) throws Exception {

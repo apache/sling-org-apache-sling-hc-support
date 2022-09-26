@@ -19,6 +19,10 @@ package org.apache.sling.hc.support.impl;
 
 import java.lang.reflect.Field;
 
+/**
+ * @deprecated for SLING-11446 - Moved this to the org.apache.sling.auth.core bundle
+ */
+@Deprecated
 public class SetField {
     
     public static void set(Object o, String name, Object value) throws Exception {

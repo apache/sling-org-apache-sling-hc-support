@@ -39,14 +39,17 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** {@link HealthCheck} that runs an arbitrary script. */
+/** {@link HealthCheck} that runs an arbitrary script. 
+ * @deprecated for SLING-11446 - Moved this to the org.apache.sling.auth.core bundle
+ */
 @Component(service = HealthCheck.class, name = "org.apache.sling.hc.support.DefaultLoginsHealthCheck", configurationPolicy = ConfigurationPolicy.REQUIRE)
 @Designate(ocd = DefaultLoginsHealthCheck.Config.class, factory = true)
+@Deprecated
 public class DefaultLoginsHealthCheck implements HealthCheck {
 
     private static final Logger LOG = LoggerFactory.getLogger(DefaultLoginsHealthCheck.class);
 
-    public static final String HC_LABEL = "Health Check: Default Logins";
+    public static final String HC_LABEL = "Health Check: Default Logins (deprecated)";
 
     @ObjectClassDefinition(name = HC_LABEL, description = "Expects default logins to fail, used to verify that they are disabled on production systems")
     @interface Config {
@@ -63,7 +66,7 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
         String[] logins() default "logins";
 
         @AttributeDefinition
-        String webconsole_configurationFactory_nameHint() default "Default Logins Check: {logins}";
+        String webconsole_configurationFactory_nameHint() default "Default Logins Check (deprecated): {logins}";
     }
 
     private List<String> logins;
@@ -75,6 +78,7 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
     protected void activate(Config config) {
         this.logins = Arrays.asList(config.logins());
         LOG.info("Activated, logins={}", logins);
+        LOG.warn("This is deprecated.  Please use the component from the org.apache.sling.auth.core bundle instead.");
     }
 
     @Override
