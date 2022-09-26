@@ -34,6 +34,8 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import ch.qos.logback.classic.Level;
+
 /**
  * @deprecated for SLING-11446 - Moved this to the org.apache.sling.auth.core bundle
  */
@@ -65,9 +67,26 @@ public class DefaultLoginsHealthCheckTest {
     public void testHealthCheckFails() throws Exception {
         assertFalse("Expecting failed check", getTestResult("admin:admin").isOk());
     }
-    
+
     @Test
     public void testHealthCheckSucceeds() throws Exception {
         assertTrue("Expecting successful check", getTestResult("FOO:bar").isOk());
     }
+
+    @Test
+    public void testHealthCheckDeprecatedWarning() throws Exception {
+        final DefaultLoginsHealthCheck c = new DefaultLoginsHealthCheck();
+        DefaultLoginsHealthCheck.Config config = Mockito.mock(DefaultLoginsHealthCheck.Config.class);
+        Mockito.when(config.logins()).thenReturn(new String[] {"admin:admin"});
+
+        try (LogCapture capture = new LogCapture("org.apache.sling.hc.support.impl.DefaultLoginsHealthCheck", true)) {
+            // this should log a deprecation warning
+            c.activate(config);
+
+            // verify the warning was logged
+            capture.assertContains(Level.WARN, "This is deprecated. Please use the component from the org.apache.sling.auth.core bundle instead.");
+        }
+
+    }
+
 }

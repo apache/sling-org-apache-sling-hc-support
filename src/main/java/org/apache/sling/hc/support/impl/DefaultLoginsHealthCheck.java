@@ -66,7 +66,7 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
         String[] logins() default "logins";
 
         @AttributeDefinition
-        String webconsole_configurationFactory_nameHint() default "Default Logins Check (deprecated): {logins}";
+        String webconsole_configurationFactory_nameHint() default "Default Logins Check (deprecated): {logins}"; // NOSONAR
     }
 
     private List<String> logins;
@@ -78,7 +78,7 @@ public class DefaultLoginsHealthCheck implements HealthCheck {
     protected void activate(Config config) {
         this.logins = Arrays.asList(config.logins());
         LOG.info("Activated, logins={}", logins);
-        LOG.warn("This is deprecated.  Please use the component from the org.apache.sling.auth.core bundle instead.");
+        LOG.warn("This is deprecated. Please use the component from the org.apache.sling.auth.core bundle instead.");
     }
 
     @Override
