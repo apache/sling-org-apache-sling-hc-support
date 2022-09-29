@@ -67,14 +67,19 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** {@link HealthCheck} that runs an arbitrary script. */
+/** 
+ * {@link HealthCheck} that runs an arbitrary script.
+ * 
+ * @deprecated for SLING-11445 -  use the equivalent functionality from the org.apache.felix.healthcheck.generalchecks bundle instead
+ */
 @Component(service = HealthCheck.class, name = "org.apache.sling.hc.support.ScriptedHealthCheck", configurationPolicy = ConfigurationPolicy.REQUIRE)
 @Designate(ocd = ScriptedHealthCheck.Config.class, factory = true)
+@Deprecated
 public class ScriptedHealthCheck implements HealthCheck {
 
     private static final Logger LOG = LoggerFactory.getLogger(ScriptedHealthCheck.class);
 
-    public static final String HC_LABEL = "Health Check: Sling Script";
+    public static final String HC_LABEL = "Health Check: Sling Script (deprecated)";
 
     public static final String JCR_FILE_URL_PREFIX = "jcr:";
     private static final String JCR_CONTENT = "/jcr:content";
@@ -106,7 +111,7 @@ public class ScriptedHealthCheck implements HealthCheck {
         String scriptUrl() default "";
 
         @AttributeDefinition
-        String webconsole_configurationFactory_nameHint() default "Scripted HC: {hc.name} (tags: {hc.tags}) {scriptUrl} language: {language}"; // NOSONAR
+        String webconsole_configurationFactory_nameHint() default "Scripted HC (deprecated): {hc.name} (tags: {hc.tags}) {scriptUrl} language: {language}"; // NOSONAR
     }
 
     private String language;
@@ -138,6 +143,7 @@ public class ScriptedHealthCheck implements HealthCheck {
         LOG.info("Activated Scripted HC {} with {}", config.hc_name(),
                 (StringUtils.isNotBlank(script) ? "script " + script : "script url " + scriptUrl));
 
+        LOG.warn("This is deprecated. Please use the use the equivalent functionality from the org.apache.felix.healthcheck.generalchecks bundle instead.");
     }
 
     @Override

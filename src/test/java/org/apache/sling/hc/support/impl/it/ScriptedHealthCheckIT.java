@@ -50,9 +50,11 @@ import org.ops4j.pax.exam.util.PathUtils;
 
 /**
  * Tests for SLING-11141
+ * @deprecated for SLING-11445 -  use the equivalent functionality from the org.apache.felix.healthcheck.generalchecks bundle instead
  */
 @RunWith(PaxExam.class)
 @ExamReactorStrategy(PerClass.class)
+@Deprecated
 public class ScriptedHealthCheckIT extends HCSupportTestSupport {
 
     @Inject

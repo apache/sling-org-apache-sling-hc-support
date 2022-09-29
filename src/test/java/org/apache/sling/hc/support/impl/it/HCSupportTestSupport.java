@@ -46,6 +46,10 @@ import org.ops4j.pax.exam.options.ModifiableCompositeOption;
 import org.ops4j.pax.exam.options.OptionalCompositeOption;
 import org.ops4j.pax.exam.options.extra.VMOption;
 
+/**
+ * @deprecated for SLING-11445 -  use the equivalent functionality from the org.apache.felix.healthcheck.generalchecks bundle instead
+ */
+@Deprecated
 public class HCSupportTestSupport extends TestSupport {
 
     @Inject
