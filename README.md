@@ -7,3 +7,7 @@
 This module is part of the [Apache Sling](https://sling.apache.org) project.
 
 Additional general purpose health checks. Module specific health checks should be located in the module they check. 
+
+## DEPRECATED
+
+Note that this functionality has **moved to the [org.apache.felix.healthcheck.generalchecks](https://github.com/apache/felix-dev/tree/master/healthcheck/generalchecks) and [org.apache.sling.auth.core](https://github.com/apache/sling-org-apache-sling-auth-core) modules**
